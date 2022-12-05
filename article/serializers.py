@@ -9,7 +9,7 @@ class WorrySerializer(serializers.ModelSerializer):
 class BeeSolutionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Solution
-        fields = ['wise',]
+        fields = ['wise',] #solution_image로 변경할 것 
         
 class RatingSerializer(serializers.ModelSerializer):
     class Meta:
