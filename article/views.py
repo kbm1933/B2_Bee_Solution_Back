@@ -34,6 +34,3 @@ class BeeSolutionView(APIView):
             rating_serializer.save(user = request.user, solution_id = solution_id)
             return Response({"message":"평가 완료"}, status=status.HTTP_200_OK)
         return Response(rating_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-        
