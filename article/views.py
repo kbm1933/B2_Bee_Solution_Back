@@ -7,7 +7,6 @@ from article.models import Solution, Comment, Article
 from article.serializers import WorrySerializer,BeeSolutionSerializer, RatingSerializer, CommentSerializer, MakeSolutionSerializer
 
 
-
 class MakeWorryView(APIView):
     def post(self, request):
         
@@ -61,10 +60,11 @@ class MakeSolutionView(APIView):
     def post(self, request, article_id):
         make_solution_serializer = MakeSolutionSerializer(data=request.data)
         if make_solution_serializer.is_valid():
+            # 원본사진 저장
             make_solution_serializer.save(user=request.user)
-            
+            # solition 적용 이미지 저장
             latest_idx = Solution.objects.order_by('-pk')[0].pk
-            makewisepicture(latest_idx)
+            make_wise_image(latest_idx)
             
             return Response("저장 완료", status=status.HTTP_200_OK)
         else:
