@@ -5,8 +5,43 @@ from similarity import make_solution
 from makesolution import make_wise_image
 from article.models import Solution, Article, Rating, Comment
 from article.serializers import WorrySerializer,BeeSolutionSerializer, RatingSerializer, CommentSerializer, MakeSolutionSerializer
+from rest_framework.pagination import PageNumberPagination 
+from article.pagination import PaginationHandlerMixin
 
+class ArticlePagination(PageNumberPagination): # 한 페이지에 게시물 3개
+    page_size = 3
 
+class MainView(APIView, PaginationHandlerMixin):
+    pagination_class = ArticlePagination
+    serializer_class = WorrySerializer
+
+    def get(self, request, category_id):
+
+        if 0 < category_id < 9 :
+            category_list = ['음식','취미','취업','일상','투자','연애','스포츠','연예']
+            category = category_list[category_id - 1]
+        elif category_id >= 9:
+            mbti_list = ['ENFP','ENFJ','ENTP','ENTJ','ESFP','ESFJ','ESTP','ESTJ',
+                        'INFP','INFJ','INTP','INTJ','ISFP','ISFJ','ISTP','ISTJ']
+            mbti = mbti_list[category_id - 9]
+
+        if category_id == 0:
+            articles = Article.objects.all()
+
+        elif category_id < 9:
+            articles = Article.objects.filter(category = category)
+        else:
+            articles = Article.objects.filter(mbti=mbti)
+
+        page = self.paginate_queryset(articles)
+
+        if page is not None:
+            serializer = self.get_paginated_response(self.serializer_class(page, many=True).data)
+        else:
+            serializer = self.serializer_class(articles, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
 class MakeWorryView(APIView):
     def post(self, request):
         
@@ -118,25 +153,3 @@ class ArticleDetailView(APIView):
             return Response({"message":"삭제 완료"},status=status.HTTP_200_OK)
         else:
             return Response({"message":"권한이 없습니다."},status=status.HTTP_403_FORBIDDEN)
-        
-class MainView(APIView):
-    def get(self, request, category_id):
-
-        if 0 < category_id < 9 :
-            category_list = ['음식','취미','취업','일상','투자','연애','스포츠','연예']
-            category = category_list[category_id - 1]
-        elif category_id >= 9:
-            mbti_list = ['ENFP','ENFJ','ENTP','ENTJ','ESFP','ESFJ','ESTP','ESTJ',
-                        'INFP','INFJ','INTP','INTJ','ISFP','ISFJ','ISTP','ISTJ']
-            mbti = mbti_list[category_id - 9]
-        
-        if category_id == 0:
-            articles = Article.objects.all()
-            
-        elif category_id < 9:
-            articles = Article.objects.filter(category = category)
-        else:
-            articles = Article.objects.filter(mbti=mbti)
-
-        article_serializer = WorrySerializer(articles, many = True)
-        return Response(article_serializer.data, status=status.HTTP_200_OK)
